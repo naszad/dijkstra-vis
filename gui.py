@@ -75,7 +75,8 @@ def run_animation(s, t):
                 edge = graph['edge_items'].get((a, b)) or graph['edge_items'].get((b, a))
                 if edge: canvas.itemconfig(edge, fill='green')
             return
-        delay = speed_var.get()
+        # get current slider delay from the Scale widget
+        delay = int(speed_scale.get())
         root.after(delay, step)
     step()
 
