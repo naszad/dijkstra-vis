@@ -233,11 +233,20 @@ def on_generate():
     generate_random_graph(n, m, filepath)
     load_data(filepath)
 
-root = tk.Tk(); root.title('Dijkstra GUI')
-btn = tk.Button(root, text='Load & Run', command=load_file); btn.pack()
-# Random graph generation controls
-gen_frame = tk.Frame(root)
-gen_frame.pack(pady=5)
+root = tk.Tk()
+root.title('Dijkstra GUI')
+
+# ----- Top Controls Frame -----
+controls_frame = tk.Frame(root)
+controls_frame.pack(fill=tk.X, padx=5, pady=5)
+
+# Load & Run Button
+btn = tk.Button(controls_frame, text='Load & Run', command=load_file)
+btn.pack(side=tk.LEFT, padx=5)
+
+# Random Graph Generation Controls
+gen_frame = tk.Frame(controls_frame)
+gen_frame.pack(side=tk.LEFT, padx=5)
 tk.Label(gen_frame, text='Vertices:').pack(side=tk.LEFT)
 vert_spin = tk.Spinbox(gen_frame, from_=1, to=100, width=5)
 vert_spin.pack(side=tk.LEFT)
@@ -245,14 +254,22 @@ tk.Label(gen_frame, text='Max Conn:').pack(side=tk.LEFT)
 conn_spin = tk.Spinbox(gen_frame, from_=1, to=100, width=5)
 conn_spin.pack(side=tk.LEFT)
 gen_btn = tk.Button(gen_frame, text='Generate Graph', command=on_generate)
-gen_btn.pack(side=tk.LEFT)
-text = tk.Text(root, width=60, height=20); text.pack()
-canvas = tk.Canvas(root, width=600, height=600, bg='white')
-canvas.pack()
-# Animation speed control
+gen_btn.pack(side=tk.LEFT, padx=5)
+
+# Animation Speed Control
 speed_var = tk.IntVar(value=500)
-speed_scale = tk.Scale(root, from_=100, to=2000, orient=tk.HORIZONTAL, label='Animation Speed (ms)', variable=speed_var)
-speed_scale.pack()
-# Ensure the window is maximized so the slider and canvas fit on screen
-root.state('zoomed')
+speed_scale = tk.Scale(controls_frame, from_=100, to=2000, orient=tk.HORIZONTAL,
+                      label='Speed (ms)', variable=speed_var)
+speed_scale.pack(side=tk.LEFT, padx=5)
+
+# ----- Main Content Frame -----
+content_frame = tk.Frame(root)
+content_frame.pack(fill=tk.BOTH, expand=True)
+
+text = tk.Text(content_frame, width=60, height=20)
+text.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
+
+canvas = tk.Canvas(content_frame, width=600, height=600, bg='white')
+canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+
 root.mainloop() 
