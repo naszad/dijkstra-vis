@@ -6,97 +6,47 @@
 #include <algorithm>
 #include <climits>
 #include <fstream>
-
 using namespace std;
-
-struct Edge { int to; unsigned weight; };
-
-class Vertex {
+struct Edge{int to;unsigned weight;};
+class Vertex{
 public:
-    string name;               // Vertex name
-    vector<Edge> adj;          // adjacent vertices
-    unsigned dist;             // distance estimate D(v)
-    int prev;                  // previous vertex index
-    bool visited;              // in N'
-    Vertex(const string& n) : name(n), dist(UINT_MAX), prev(-1), visited(false) {}
+    string name;vector<Edge> adj;unsigned dist;int prev;bool visited;
+    Vertex(const string& n):name(n),dist(UINT_MAX),prev(-1),visited(false){}
 };
-
-struct Compare {
-    bool operator()(Vertex* a, Vertex* b) const {
-        return a->dist > b->dist;
-    }
-};
-
-int main() {
+struct Compare{bool operator()(Vertex* a,Vertex* b)const{return a->dist>b->dist;}};
+int main(){
     ifstream file("graph_input.txt");
-    if (!file) {
-        cerr << "Failed to open graph_input.txt" << endl;
-        return 1;
-    }
-
-    int N, M;
-    file >> N >> M;             // #vertices, #edges
-    vector<Vertex> V;          // all vertices
-    V.reserve(N);
-    string u, v;
-
-    // Read vertex names
-    for (int i = 0; i < N; ++i) {
-        file >> u;
-        V.emplace_back(u);
-    }
+    if(!file){cerr<<"Failed to open graph_input.txt\n";return 1;}
+    int N,M;file>>N>>M;
+    vector<Vertex> V;V.reserve(N);string u,v;
+    for(int i=0;i<N;++i){file>>u;V.emplace_back(u);}
     unordered_map<string,int> idx;
-    for (int i = 0; i < N; ++i) idx[V[i].name] = i;
-
-    // Read edges
-    for (int i = 0; i < M; ++i) {
-        unsigned w;
-        file >> u >> v >> w;
-        int iu = idx[u], iv = idx[v];
-        V[iu].adj.push_back({iv, w});
-        V[iv].adj.push_back({iu, w});  // undirected
+    for(int i=0;i<N;++i)idx[V[i].name]=i;
+    for(int i=0;i<M;++i){
+        unsigned w;file>>u>>v>>w;
+        int iu=idx[u],iv=idx[v];
+        V[iu].adj.push_back({iv,w});V[iv].adj.push_back({iu,w});
     }
-
-    // Read source and initialize
-    file >> u;
-    int s = idx[u];
-    // 1. Initialization:
-    //    N' = {u}
-    //    for all v:
-    //      if v adjacent to u: D(v) = c(u,v)
-    //      else D(v) = ∞
-    V[s].dist = 0;
-    priority_queue<Vertex*, vector<Vertex*>, Compare> pq;
-    pq.push(&V[s]);
-
-    // 2. Loop until all vertices processed
-    while (!pq.empty()) {
-        Vertex* wv = pq.top(); pq.pop();
-        if (wv->visited) continue;
-        wv->visited = true;     // add w to N'
-        // update neighbors
-        for (auto& e : wv->adj) {
-            Vertex* x = &V[e.to];
-            if (x->visited) continue;
-            unsigned alt = wv->dist + e.weight;
-            // D(x) = min(D(x), D(w)+c(w,x))
-            if (alt < x->dist) {
-                x->dist = alt;
-                x->prev = idx[wv->name];
-                pq.push(x);
-            }
+    file>>u;int s=idx[u];V[s].dist=0;
+    priority_queue<Vertex*,vector<Vertex*>,Compare> pq;pq.push(&V[s]);
+    while(!pq.empty()){
+        Vertex* wv=pq.top();pq.pop();
+        if(wv->visited)continue;
+        wv->visited=true;
+        for(auto& e:wv->adj){
+            Vertex* x=&V[e.to];
+            if(x->visited)continue;
+            unsigned alt=wv->dist+e.weight;
+            if(alt<x->dist){x->dist=alt;x->prev=idx[wv->name];pq.push(x);}
         }
     }
-
-    // Output shortest paths
-    for (auto& vert : V) {
-        cout << "Path to " << vert.name << " (cost " << vert.dist << "): ";
+    for(auto& vert:V){
+        cout<<"Path to "<<vert.name<<" (cost "<<vert.dist<<"): ";
         vector<string> path;
-        for (int i = idx[vert.name]; i != -1; i = V[i].prev)
-            path.push_back(V[i].name);
-        reverse(path.begin(), path.end());
-        for (auto& nm : path) cout << nm << " ";
-        cout << '\n';
+        for(int i=idx[vert.name];i!=-1;i=V[i].prev)path.push_back(V[i].name);
+        reverse(path.begin(),path.end());
+        for(auto& nm:path)cout<<nm<<" ";
+        cout<<'\n';
     }
     return 0;
-} 
+}
