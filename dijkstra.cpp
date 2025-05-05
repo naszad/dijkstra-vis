@@ -1,4 +1,12 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <string>
+#include <unordered_map>
+#include <algorithm>
+#include <climits>
+#include <fstream>
+
 using namespace std;
 
 struct Edge { int to; unsigned weight; };
@@ -20,15 +28,21 @@ struct Compare {
 };
 
 int main() {
+    ifstream file("graph_input.txt");
+    if (!file) {
+        cerr << "Failed to open graph_input.txt" << endl;
+        return 1;
+    }
+
     int N, M;
-    cin >> N >> M;             // #vertices, #edges
+    file >> N >> M;             // #vertices, #edges
     vector<Vertex> V;          // all vertices
     V.reserve(N);
     string u, v;
 
     // Read vertex names
     for (int i = 0; i < N; ++i) {
-        cin >> u;
+        file >> u;
         V.emplace_back(u);
     }
     unordered_map<string,int> idx;
@@ -37,14 +51,14 @@ int main() {
     // Read edges
     for (int i = 0; i < M; ++i) {
         unsigned w;
-        cin >> u >> v >> w;
+        file >> u >> v >> w;
         int iu = idx[u], iv = idx[v];
         V[iu].adj.push_back({iv, w});
         V[iv].adj.push_back({iu, w});  // undirected
     }
 
     // Read source and initialize
-    cin >> u;
+    file >> u;
     int s = idx[u];
     // 1. Initialization:
     //    N' = {u}
