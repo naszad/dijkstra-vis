@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 import heapq
 import math
+import random
 
 # Global state for animation
 graph = {'N':0, 'adj':[], 'names':[], 'pos':[], 'node_items':[], 'edge_items':{}}
@@ -132,6 +133,49 @@ def load_file():
         node_id = canvas.create_oval(x-r, y-r, x+r, y+r, fill='lightblue')
         canvas.create_text(x, y, text=name)
         graph['node_items'].append(node_id)
+
+# Helper: generate a random, connected graph TXT file
+# num_vertices: number of vertices; max_connections: max degree per vertex
+# filepath: where to write; weight_range: (min,max) for edge weights
+def generate_random_graph(num_vertices, max_connections, filepath='graph_input.txt', weight_range=(1,10)):
+    if num_vertices < 1 or max_connections < 1:
+        raise ValueError("num_vertices and max_connections must be at least 1")
+    # create vertex names
+    names = []
+    if num_vertices <= 26:
+        for i in range(num_vertices): names.append(chr(ord('A') + i))
+    else:
+        for i in range(num_vertices): names.append(f"V{i}")
+    # adjacency sets
+    adj = [set() for _ in range(num_vertices)]
+    # ensure connectivity via random spanning tree
+    vertices = list(range(num_vertices))
+    random.shuffle(vertices)
+    for i in range(1, num_vertices):
+        u = vertices[i]; v = vertices[random.randrange(0, i)]
+        adj[u].add(v); adj[v].add(u)
+    # add random extra edges up to max_connections
+    for u in range(num_vertices):
+        extra = random.randint(0, max(0, max_connections - len(adj[u])))
+        for _ in range(extra):
+            v = random.randrange(num_vertices)
+            if (v != u and v not in adj[u] and len(adj[u])<max_connections and len(adj[v])<max_connections):
+                adj[u].add(v); adj[v].add(u)
+    # build edge list with weights
+    edges = []
+    for u in range(num_vertices):
+        for v in adj[u]:
+            if u < v:
+                w = random.randint(weight_range[0], weight_range[1])
+                edges.append((u, v, w))
+    M = len(edges)
+    # write file
+    with open(filepath, 'w') as f:
+        f.write(f"{num_vertices} {M}\n")
+        for name in names: f.write(f"{name}\n")
+        for u, v, w in edges: f.write(f"{names[u]} {names[v]} {w}\n")
+        f.write(f"{random.choice(names)}\n")  # random source
+    print(f"Generated random graph: {filepath} ({num_vertices} vertices, {M} edges)")
 
 root = tk.Tk(); root.title('Dijkstra GUI')
 btn = tk.Button(root, text='Load & Run', command=load_file); btn.pack()
