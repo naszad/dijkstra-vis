@@ -177,8 +177,75 @@ def generate_random_graph(num_vertices, max_connections, filepath='graph_input.t
         f.write(f"{random.choice(names)}\n")  # random source
     print(f"Generated random graph: {filepath} ({num_vertices} vertices, {M} edges)")
 
+def load_data(path):
+    # Load and draw graph from a given file path
+    with open(path) as f: data = f.read().split()
+    it = iter(data)
+    N = int(next(it)); M = int(next(it))
+    names = [next(it) for _ in range(N)]
+    idx = {n:i for i,n in enumerate(names)}
+    adj = [[] for _ in range(N)]
+    for _ in range(M):
+        u = next(it); v = next(it); w = int(next(it))
+        iu, iv = idx[u], idx[v]
+        adj[iu].append((iv, w)); adj[iv].append((iu, w))
+    # Prompt for node selection and bind click handler
+    text.delete('1.0', tk.END)
+    text.insert(tk.END, f'Loaded {path}. Click two nodes to animate.')
+    selected.clear(); canvas.bind('<Button-1>', on_canvas_click)
+    # Draw layout
+    canvas.delete('all')
+    width, height = int(canvas['width']), int(canvas['height'])
+    center_x, center_y = width/2, height/2
+    radius = min(width, height)/2 - 50
+    pos = []
+    for i in range(N):
+        angle = 2*math.pi*i/N
+        x = center_x + radius*math.cos(angle)
+        y = center_y + radius*math.sin(angle)
+        pos.append((x,y))
+    graph.update({'N':N, 'adj':adj, 'names':names, 'pos':pos, 'node_items':[], 'edge_items':{}})
+    # Draw edges
+    drawn = set()
+    for i in range(N):
+        for v,w in adj[i]:
+            if (v,i) in drawn: continue
+            x1,y1 = pos[i]; x2,y2 = pos[v]
+            e_id = canvas.create_line(x1,y1,x2,y2, fill='gray')
+            mid_x,mid_y = (x1+x2)/2, (y1+y2)/2
+            canvas.create_text(mid_x, mid_y, text=str(w))
+            graph['edge_items'][(i,v)] = e_id; drawn.add((i,v))
+    # Draw nodes
+    for i,name in enumerate(names):
+        x,y = pos[i]
+        node_id = canvas.create_oval(x-r, y-r, x+r, y+r, fill='lightblue')
+        canvas.create_text(x, y, text=name)
+        graph['node_items'].append(node_id)
+
+
+def on_generate():
+    try:
+        n = int(vert_spin.get()); m = int(conn_spin.get())
+    except ValueError:
+        text.delete('1.0', tk.END); text.insert(tk.END, 'Invalid parameters')
+        return
+    filepath = 'random_graph.txt'
+    generate_random_graph(n, m, filepath)
+    load_data(filepath)
+
 root = tk.Tk(); root.title('Dijkstra GUI')
 btn = tk.Button(root, text='Load & Run', command=load_file); btn.pack()
+# Random graph generation controls
+gen_frame = tk.Frame(root)
+gen_frame.pack(pady=5)
+tk.Label(gen_frame, text='Vertices:').pack(side=tk.LEFT)
+vert_spin = tk.Spinbox(gen_frame, from_=1, to=100, width=5)
+vert_spin.pack(side=tk.LEFT)
+tk.Label(gen_frame, text='Max Conn:').pack(side=tk.LEFT)
+conn_spin = tk.Spinbox(gen_frame, from_=1, to=100, width=5)
+conn_spin.pack(side=tk.LEFT)
+gen_btn = tk.Button(gen_frame, text='Generate Graph', command=on_generate)
+gen_btn.pack(side=tk.LEFT)
 text = tk.Text(root, width=60, height=20); text.pack()
 canvas = tk.Canvas(root, width=600, height=600, bg='white')
 canvas.pack()
