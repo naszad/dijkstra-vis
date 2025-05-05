@@ -253,4 +253,6 @@ canvas.pack()
 speed_var = tk.IntVar(value=500)
 speed_scale = tk.Scale(root, from_=100, to=2000, orient=tk.HORIZONTAL, label='Animation Speed (ms)', variable=speed_var)
 speed_scale.pack()
+# Ensure the window is maximized so the slider and canvas fit on screen
+root.state('zoomed')
 root.mainloop() 
